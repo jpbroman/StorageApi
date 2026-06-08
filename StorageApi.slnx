@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="StorageApi.API/StorageApi.API.csproj" />
+  <Project Path="StorageApi.TEST/StorageApi.TEST.csproj" />
+</Solution>

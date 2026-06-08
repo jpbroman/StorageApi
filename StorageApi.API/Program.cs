@@ -24,16 +24,17 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // create a dev DB
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<StorageDbContext>();
+        db.Database.Migrate();
+    }
 }
 
 app.UseHttpsRedirection();
 
 app.MapControllers();
-
-// using (var scope = app.Services.CreateScope())
-// {
-//     var db = scope.ServiceProvider.GetRequiredService<StorageDbContext>();
-//     db.Database.Migrate();
-// }
 
 app.Run();

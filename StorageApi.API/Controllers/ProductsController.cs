@@ -139,5 +139,15 @@ public class ProductsController : ControllerBase
 
         return NoContent();
     }
-}
 
+    // GET (inventory status): api/products/status
+    [HttpGet("status")]
+    public async Task<ActionResult<ProductStatusDto>> GetInventoryStatus()
+    {
+        var numberOfProducts = await _context.Products.CountAsync();
+        var totalInventoryValue = await _context.Products.SumAsync(p => p.Price * p.Count);
+        var averagePrice = numberOfProducts > 0 ? (int)Math.Round((double)totalInventoryValue / numberOfProducts) : 0;
+
+        return Ok(new ProductStatusDto(numberOfProducts, totalInventoryValue, averagePrice));
+    }
+}

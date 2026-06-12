@@ -1,6 +1,6 @@
-StorageApi is an application for warehouse keeping.
+StorageApi supports an application for warehouse keeping.
 
-It store products in table Products, with properties:
+It can store products, with properties:
 - Name
 - Price
 - Category

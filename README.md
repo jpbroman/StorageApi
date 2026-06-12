@@ -26,7 +26,7 @@ The API responds to the following requests:
 - GET http://localhost:5119/api/Products?shelf=A1&category=Food
     List all products on shelf A1 in category food.
 
-- GET http://localhost:5119/api/Products/ststus
+- GET http://localhost:5119/api/Products/status
     Product inventory status:
     {
         "numberOfProducts": 13,

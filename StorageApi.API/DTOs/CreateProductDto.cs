@@ -2,27 +2,29 @@ using System.ComponentModel.DataAnnotations;
 
 namespace StorageApi.API.DTO;
 
-// This is only for POST
-public record CreateProductDto(
-    [property: Required]
-    [property: StringLength(50, MinimumLength = 2)]
-    string Name,
+using System.ComponentModel.DataAnnotations;
 
-    [property: Range(0, 1_000_000)]
-    int Price,
+public class CreateProductDto
+{
+    [Required]
+    [StringLength(50, MinimumLength = 2)]
+    public string Name { get; set; } = string.Empty;
 
-    [property: Required]
-    [property: StringLength(50, MinimumLength = 2)]
-    string Category,
+    [Range(0, 1_000_000)]
+    public int Price { get; set; }
 
-    [property: Required]
-    [property: StringLength(20, MinimumLength = 2)]
-    string Shelf,
+    [Required]
+    [StringLength(50, MinimumLength = 2)]
+    public string Category { get; set; } = string.Empty;
 
-    [property: Range(0, 100_000)]
-    int Count,
+    [Required]
+    [StringLength(20, MinimumLength = 2)]
+    public string Shelf { get; set; } = string.Empty;
 
-    [property: Required]
-    [property: StringLength(400, MinimumLength = 2)]
-    string Description
-);
+    [Range(0, 100_000)]
+    public int Count { get; set; }
+
+    [Required]
+    [StringLength(400, MinimumLength = 2)]
+    public string Description { get; set; } = string.Empty;
+}

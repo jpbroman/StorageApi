@@ -10,8 +10,7 @@ public record ProductDto(
     string Category,
     string Shelf,
     int Count,
-    string Description
-)
+    string Description)
 {
     public int InventoryValue => Price * Count;
 }

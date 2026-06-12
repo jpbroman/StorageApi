@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StorageApi.API.Data;
+using StorageApi.API.DTO;
 using StorageApi.API.Models;
 
 namespace StorageApi.API.Controllers;
@@ -16,16 +17,85 @@ public class ProductsController : ControllerBase
         _context = context;
     }
 
-    // GET: api/products
+    // GET (all products): api/products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
     {
-        return await _context.Products.ToListAsync();
+        var products = await _context.Products
+            .Select(p => new ProductDto(
+                p.Id,
+                p.Name,
+                p.Price,
+                p.Category,
+                p.Shelf,
+                p.Count,
+                p.Description))
+            .ToListAsync();
+
+        return Ok(products);
     }
 
-    // GET: api/products/5
+    // GET (specific product): api/products/2
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Product>> GetProduct(int id)
+    public async Task<ActionResult<ProductDto>> GetProduct(int id)
+    {
+        var product = await _context.Products
+            .Where(p => p.Id == id)
+            .Select(p => new ProductDto(
+                p.Id,
+                p.Name,
+                p.Price,
+                p.Category,
+                p.Shelf,
+                p.Count,
+                p.Description))
+            .FirstOrDefaultAsync();
+
+        if (product == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(product);
+    }
+
+    // POST (create new product): api/products
+    [HttpPost]
+    public async Task<ActionResult<ProductDto>> CreateProduct(CreateProductDto dto)
+    {
+        var product = new Product
+        {
+            Name = dto.Name,
+            Price = dto.Price,
+            Category = dto.Category,
+            Shelf = dto.Shelf,
+            Count = dto.Count,
+            Description = dto.Description
+        };
+
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        var result = new ProductDto(
+            product.Id,
+            product.Name,
+            product.Price,
+            product.Category,
+            product.Shelf,
+            product.Count,
+            product.Description);
+
+        return CreatedAtAction(
+            nameof(GetProduct),
+            new { id = product.Id },
+            result);
+    }
+
+    // PUT (update existing product): api/products/5
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<ProductDto>> UpdateProduct(
+        int id,
+        CreateProductDto dto)
     {
         var product = await _context.Products.FindAsync(id);
 
@@ -34,51 +104,26 @@ public class ProductsController : ControllerBase
             return NotFound();
         }
 
-        return product;
-    }
+        product.Name = dto.Name;
+        product.Price = dto.Price;
+        product.Category = dto.Category;
+        product.Shelf = dto.Shelf;
+        product.Count = dto.Count;
+        product.Description = dto.Description;
 
-    // POST: api/products
-    [HttpPost]
-    public async Task<ActionResult<Product>> CreateProduct(Product product)
-    {
-        _context.Products.Add(product);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(
-            nameof(GetProduct),
-            new { id = product.Id },
-            product);
+        return Ok(new ProductDto(
+            product.Id,
+            product.Name,
+            product.Price,
+            product.Category,
+            product.Shelf,
+            product.Count,
+            product.Description));
     }
 
-    // PUT: api/products/5
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateProduct(int id, Product product)
-    {
-        if (id != product.Id)
-        {
-            return BadRequest("Id mismatch.");
-        }
-
-        _context.Entry(product).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!await ProductExists(id))
-            {
-                return NotFound();
-            }
-
-            throw;
-        }
-
-        return NoContent();
-    }
-
-    // DELETE: api/products/5
+    // DELETE: api/products/2
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
@@ -95,8 +140,14 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
-    private async Task<bool> ProductExists(int id)
+    // GET (inventory status): api/products/status
+    [HttpGet("status")]
+    public async Task<ActionResult<ProductStatusDto>> GetInventoryStatus()
     {
-        return await _context.Products.AnyAsync(p => p.Id == id);
+        var numberOfProducts = await _context.Products.CountAsync();
+        var totalInventoryValue = await _context.Products.SumAsync(p => p.Price * p.Count);
+        var averagePrice = numberOfProducts > 0 ? (int)Math.Round((double)totalInventoryValue / numberOfProducts) : 0;
+
+        return Ok(new ProductStatusDto(numberOfProducts, totalInventoryValue, averagePrice));
     }
 }

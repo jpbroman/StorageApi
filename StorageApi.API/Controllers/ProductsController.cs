@@ -17,11 +17,24 @@ public class ProductsController : ControllerBase
         _context = context;
     }
 
-    // GET (all products): api/products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts(
+        [FromQuery] string? shelf,
+        [FromQuery] string? category)
     {
-        var products = await _context.Products
+        var query = _context.Products.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(shelf))
+        {
+            query = query.Where(p => p.Shelf == shelf);
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query = query.Where(p => p.Category == category);
+        }
+
+        var products = await query
             .Select(p => new ProductDto(
                 p.Id,
                 p.Name,
@@ -34,7 +47,6 @@ public class ProductsController : ControllerBase
 
         return Ok(products);
     }
-
     // GET (specific product): api/products/2
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetProduct(int id)
